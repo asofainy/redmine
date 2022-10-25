@@ -13,6 +13,13 @@ jobs:
       -
         name: Checkout 
         uses: actions/checkout@v3
+
+      - 
+        name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -32,6 +39,6 @@ jobs:
           context: ./build
           file: ./build/dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME}}/redmine:ci
-          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME}}/redmine:ci
+          tags: ${{ secrets.DOCKERHUB_USERNAME}}/${{ github.event.repository.name }}:${{ steps.extract_branch.outputs.branch }}
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME}}/${{ github.event.repository.name }}:${{ steps.extract_branch.outputs.branch }}
           cache-to: type=inline
