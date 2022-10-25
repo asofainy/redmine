@@ -1,0 +1,207 @@
+# This file is a template, and might need editing before it works on your project.
+# To contribute improvements to CI/CD templates, please follow the Development guide at:
+# https://docs.gitlab.com/ee/development/cicd/templates.html
+# This specific template is located at:
+# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Docker.gitlab-ci.yml
+
+# Build a Docker image with CI/CD and push to the GitLab registry.
+# Docker-in-Docker documentation: https://docs.gitlab.com/ee/ci/docker/using_docker_build.html
+#
+# This template uses one generic job with conditional builds
+# for the default branch and all other (MR) branches.
+
+#https://docs.gitlab.com/ee/ci/pipelines/pipeline_architectures.html
+
+stages:
+  - build
+  - test
+  - data
+  - deploy_test
+  - jobs_test
+  - deploy_prod
+  - clean
+
+### Stage: Build
+
+build:
+    tags :
+    - runner-shell-docker
+    # Use the official docker image.
+    stage: build
+    before_script:
+      - echo "$CI_REGISTRY_USER" "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+      - docker login -u "$CI_REGISTRY_USER"  -p "$CI_REGISTRY_PASSWORD"
+    # Default branch leaves tag empty (= latest tag)
+    # All other branches are tagged with the escaped branch name (commit ref slug)
+    script:
+      - |
+        if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
+          tag=""
+          echo "Running on default branch '$CI_DEFAULT_BRANCH': tag = 'latest'"
+        else
+          tag=":$CI_COMMIT_BRANCH"
+          echo "Running on branch '$CI_COMMIT_BRANCH': tag = $tag"
+        fi
+      - cd build
+      - |
+        if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
+          docker build --pull -t "$CI_REGISTRY_USER"/"${CI_PROJECT_NAME}:ci" -t "$CI_REGISTRY_USER"/"$CI_PROJECT_NAME${tag}" .
+        else
+          docker build --pull -t "$CI_REGISTRY_USER"/"${CI_PROJECT_NAME}:ci" -t "$CI_REGISTRY_USER"/"$CI_PROJECT_NAME${tag}" .
+        fi
+      - docker push "$CI_REGISTRY_USER"/"${CI_PROJECT_NAME}:ci"
+      - docker push "$CI_REGISTRY_USER"/"$CI_PROJECT_NAME${tag}"
+    # Run this job in a branch where a Dockerfile exists
+    rules:
+      - if: $CI_COMMIT_BRANCH
+        exists:
+          - build/dockerfile
+
+
+### Stage: Test
+
+image:
+  name: asofainy/redmine:ci
+  pull_policy: always
+
+.index:
+
+  needs:
+    - build
+  stage: test
+  tags :
+    - runner-shell-docker
+
+  image:
+    name: bitnami/kubectl:latest
+    pull_policy: if-not-present
+
+  script:
+    - /bin/bash
+    - -c
+    - pod=$(kubectl get pods -n production -l app=apollo --field-selector status.phase=Running | cut -f1 -d ' ' | tail -n 1 ) ; 
+      kubectl exec $pod --namespace production -c redmine -- /bin/bash -l -c "
+      echo used environment \$RAILS_ENV ;
+      cd /usr/src/redmine/plugins/redmine_xapian/extra ;
+      sed -i \"s/env = '.*'/env = '\$RAILS_ENV'/g\" xapian_indexer.rb ;
+      bundle install ;
+      ruby xapian_indexer.rb -v ;
+      chown -R redmine:redmine /usr/src/redmine/file_index"
+
+
+
+### Stage: Deploy
+
+.dump_production:
+  when: manual
+  needs:
+    - build
+  artifacts:
+    paths:
+      - artifacts/dump_redmine.sql
+    expire_in: 1 week
+  stage: data
+  tags :
+    - runner-kubernetes
+  image:
+    name: mysql:5.7-debian
+    pull_policy: if-not-present
+  script:
+    - host=apollo-services.production.svc.cluster.local ; username=root ; MYSQL_PWD="$MYSQL_PWD"
+    - mkdir artifacts
+    - file="dump_redmine"
+    - mysqldump -h $host -u  $username --routines --triggers redmine > artifacts/"$file.sql" 
+  environment:
+    name: test
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+.restore_test:
+  stage: data
+  needs:
+    - dump_production
+  tags :
+    - runner-kubernetes
+  image:
+    name: mysql:5.7-debian
+    pull_policy: if-not-present
+  dependencies:
+    - dump_production
+  script:
+    - host=apollo-services.test.svc.cluster.local ; username=root ; MYSQL_PWD="$MYSQL_PWD" 
+    - file="dump_redmine"
+    - mysql -h $host -u root -Dredmine < artifacts/"$file.sql"
+    - mysql -h $host -u root -Dredmine -e "UPDATE settings SET value = 'Apollo (T)' WHERE name like 'app_title' ;"
+
+.deploy_test:
+  stage: deploy_test
+  needs:
+    - build
+    - restore_test
+  tags :
+    - runner-kubernetes
+  image:
+    name: bitnami/kubectl:latest
+    pull_policy: if-not-present
+  script:
+    - pod=$(kubectl -n test get pods | grep apollo | cut -f1 -d " " | head -n 1 )
+    - kubectl -n test delete pod $pod 
+
+.sync-repo_test:
+  stage: jobs_test
+  needs:
+    - deploy_test
+  tags :
+    - runner-kubernetes
+  image:
+    name: bitnami/kubectl:latest
+    pull_policy: if-not-present
+  script:
+    - sleep 60
+    - pod=$(kubectl get pods -n test -l app=apollo --field-selector status.phase=Running | cut -f1 -d ' ' | tail -n 1 ) ; echo $pod ; kubectl exec $pod --namespace test -c redmine -- /opt/buildbox/scripts/sync-repo.sh
+
+.sync-library_test:
+  stage: jobs_test
+  needs:
+    - deploy_test
+  tags :
+    - runner-kubernetes
+  image:
+    name: bitnami/kubectl:latest
+    pull_policy: if-not-present
+  script:
+    - sleep 60
+    - pod=$(kubectl get pods -n test -l app=apollo --field-selector status.phase=Running | cut -f1 -d ' ' | tail -n 1 ) ; echo $pod ; kubectl exec $pod --namespace test -c redmine -- /opt/buildbox/scripts/sync-library.sh
+
+
+.clean:
+  stage: clean
+  needs:
+    - deploy_test
+  when: manual
+  tags :
+    - runner-kubernetes
+  image:
+    name: bitnami/kubectl:latest
+    pull_policy: if-not-present  
+  script:
+    - kubectl -n test delete deployment apollo
+
+
+.deploy_prod:
+  stage: deploy_prod
+  needs:
+    - build
+  when: manual
+  tags :
+    - runner-kubernetes
+  image:
+    name: bitnami/kubectl:latest
+    pull_policy: if-not-present
+  script:
+    - pod=$(kubectl -n production get pods | grep apollo | cut -f1 -d " " | head -n 1 )
+    - kubectl -n production delete pod $pod 
+  environment:
+    name: production
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

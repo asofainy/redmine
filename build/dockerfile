@@ -1,0 +1,68 @@
+FROM redmine:4.1.3
+
+#RUN mkdir -p /usr/share/man/man1
+RUN apt-get update && apt-get install -y apt-utils \
+    unzip gzip sudo curl \
+    libmariadb-dev libsqlite3-dev \
+    file make gcc g++ xz-utils \
+    libxapian-dev libpcre2-dev zlib1g-dev libmagic-dev \ 
+    ruby-xapian xapian-omega \
+    poppler-utils antiword catdoc libwpd-tools libwps-tools unrtf catdvi \
+    djview djview3 uuid uuid-dev libemail-outlook-message-perl \
+    pandoc libreoffice  \
+    python3-pip jq ; \
+    exit 0
+
+RUN pip3 install yq
+
+RUN cd /tmp \
+    && wget https://ftp.exim.org/pub/pcre/pcre2-10.37.tar.gz \
+    && wget https://ftp.exim.org/pub/pcre/pcre-8.45.tar.gz \
+    && wget https://oligarchy.co.uk/xapian/1.4.20/xapian-core-1.4.20.tar.xz \
+    && wget https://oligarchy.co.uk/xapian/1.4.20/xapian-omega-1.4.20.tar.xz \
+    && wget https://oligarchy.co.uk/xapian/1.4.20/xapian-bindings-1.4.20.tar.xz \
+    && wget --no-check-certificate http://email.redmineup.com/c/eJyFkM1qhTAQhZ9Gl5LM5EcXLgrl7voMkp_RG2oS0Yj07RvhQrsphVl9nDmcc2jkSqFkGlC3fpzl0KNtw6gQNLcgQFp0Ezg-CxTOKSmcaATbyceQ6Ny6aMLaPkenrTCi55yh0Zr3TDMDRmgc0NqhZ-06PkvZGnxr4FHvuq7ux8TlWNkaHKWDpmiSWWivhIPQIBt8lPxJqcF3tDAIL0EqQuiRzQTew2AV0wbQ9UxJaRpQZ4nTkc_dUX36MCG9WCQfzlgZ3blf0Jm4mbDc_j5fac3GT9t6LiFNv2WF9viPxOVUKJW_VO0-1mrH0R15rpm-6pDLze_-3zc0f7A -O /tmp/redmine_questions-1_0_3-light.zip \
+    && wget --no-check-certificate http://email.redmineup.com/c/eJyFkM1qxDAMhJ8mOS6K5Z_NIYdC2VufISi2nDWN7ZA4hL59HVhoL6Wgg_gYDTPiodMaFRhtutYNXvV3nNowaBSms04iIMOIRHWV1nZCOdlI2NjFkPhYb5HC0j4HmIyaeiM8AfTkwJP1WquOewNAXrXL8CxlbfCtEY8653nefkxsjpUtwXLaeYyUaOatkk5IhbLBR8mfnBp8x0n00imhNKO4I3gWzol-0mBIoL2DVooaoY8Sxz0fm-V69EEhvVhkF45YGV-5X9BSXCnMl7_LZ1oyuXFdjjmk8bes8Bb_kdicCqfyl6rdhlpt32979jXTV33kfPGr_zeRe4DM -O /tmp/redmine_agile-1_6_4-light.zip \
+    && wget --no-check-certificate http://email.redmineup.com/c/eJyFkMFqxSAQRb8mWQadiRoXLgrl7foNwegkTxo1JIbQv6-BB-2mFGYxHO7M3DtkuJQokKNWrTez0ANObTASQanaDzhPegQOvsfeOcEYsaZnO_kYEp1bF21Y26eRXDDn7WylniRnQitA3Ss5CM4ROW9X8yxla_CtgUet67q6nyUux8rW4CgdNEab7EJ7JRy4ktDgo-RPSg2-4wS69wKEJIQB2UzgPdSTTFlANzAphG1AniWORz53R3Xow4b0YpF8OGNldPt-QWfjZsNy7_f5Smu2ftzWcwlp_C0rtMd_JC6nQqn8pWp3U6MdR3fkuXr6qo9cbn7n_wZtu38M -O /tmp/redmine_checklists-3_1_21-light.zip \
+    && wget --no-check-certificate http://email.redmineup.com/c/eJyFkM1qhTAQhZ9Gl5LM5M-Fi0K5uz6DxGT0hppENCJ9-0a40G5KYVYfZw7nHBq4UiiRoxStH2bZG5zaMCgErXtpZi7YNII1RqBwznBtsRFsJx9DonProg1r-xxm1XOpDGMWjBfCodcT0GxFz7xhXLTr8Cxla_CtgUe967q6HxOXY2VrcJQOGqNNdqG9Eg5CI2_wUfInpQbfcYJeeAlSEYJBNhN4D_2kmLaAzjAlpW1AnSWORz53R_Xpw4b0YpF8OGNldOd-QWfjZsNy-_t8pTVbP27ruYQ0_pYV2uM_EpdToVT-UrX7UKsdR3fkuWb6qkMuN7_7fwNHP3_M -O /tmp/redmineup_tags-2_0_12-light.zip \
+    && wget --no-check-certificate http://email.redmineup.com/c/eJyFkM1qhTAQhZ9GlxJn8ufCRaHcXZ9B8jN6Q00iGpG-fSNcaDelMKuPM4dzDo29lChg6EG0fpzFoNG2YZQISjGDA6G2k-WOIycmew8NZzv5GBKdWxdNWNvn6JghzoQi5SxqNLOcEbVE6SSzgvp2HZ-lbA2-NfCod11X92PicqxsDY7SQVM0ySy0V9IDV6AafJT8SanBd7QwcC9ASELQyGYC72GwkikD6DSTQpgG5FnidORzd1SfPkxILxbJhzNWRnfuF3QmbiYst7_PV1qz8dO2nktI029ZoT3-I3E5FUrlL1W7j7XacXRHnmumrzrkcvO7_zdUS3_t -O /tmp/redmine_cms-1_2_3-light.zip
+
+RUN find /tmp -name "*.tar.gz" -print | xargs -I ARG tar -xzf ARG -C /tmp \
+    && find /tmp -name "*.tar.xz" -print | xargs -I ARG tar -xf ARG -C /tmp \
+    && find /tmp -name "*.zip" -print | xargs -I ARG unzip ARG -d /usr/src/redmine/plugins 
+
+RUN cd /tmp/pcre2-10.37 && ./configure --prefix=/opt && make -j16 && make install -j16 \
+    && cd /tmp/pcre-8.45 && ./configure --prefix=/opt && make -j16 && make install -j16 \
+    && cd /tmp/xapian-core-1.4.20 && ./configure --prefix=/opt && make -j16 && make install -j16 \
+    && cd /tmp/xapian-omega-1.4.20 && ./configure XAPIAN_CONFIG=/opt/bin/xapian-config PCRE_CONFIG=/opt/bin/pcre-config PCRE2_CONFIG=/opt/bin/pcre2-config && make -j16 && make install -j16 \
+    && cd /tmp/xapian-bindings-1.4.20 && ./configure XAPIAN_CONFIG=/opt/bin/xapian-config && make -j16 && make install -j16 
+
+RUN rm -rf /tmp/* \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git clone --branch v3.0.1 https://github.com/xelkano/redmine_xapian.git /usr/src/redmine/plugins/redmine_xapian \
+    && git clone https://github.com/HugoHasenbein/redmine_more_previews.git /usr/src/redmine/plugins/redmine_more_previews \
+    && git clone --branch v0.6.2 https://github.com/paginagmbh/redmine_emojibutton /usr/src/redmine/plugins/redmine_emojibutton \
+    && git clone --branch 0.27.0 https://github.com/taqueci/redmine_wysiwyg_editor.git /usr/src/redmine/plugins/redmine_wysiwyg_editor
+
+##  Additional
+#RUN git clone -b 3.0.5 https://www.github.com/alphanodes/additionals.git plugins/additionals
+##  Additional Tags
+#RUN git clone -b 1.0.4 https://www.github.com/alphanodes/additional_tags.git plugins/additional_tags
+
+RUN echo "redmine ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
+    && mkdir -p /usr/src/redmine/app/assets/config && echo '{}' > /usr/src/redmine/app/assets/config/manifest.js \
+    && sed -i "s/URI.unescape/CGI.unescape/g" /usr/src/redmine/plugins/redmine_xapian/lib/redmine_xapian/xapian_search.rb
+
+COPY plugins/calibre /usr/src/redmine/plugins/calibre
+RUN if [ -f "$root/plugins/redmine_xapian/app/views/search/index.html.erb" ] && [ -f "$root/plugins/calibre/app/views/search/index.html.erb" ]; then  file="$root/plugins/redmine_xapian/app/views/search/index.html.erb" ; echo "Redmine Xapian and Calibre plugins found, renaming \"$file\"" ; sudo mv $file "$file.old" ; fi
+
+COPY scripts/ /opt/buildbox/scripts/
+
+RUN ["chown","-R","redmine:redmine","/usr/src/redmine","/usr/local/bundle/gems"]
+RUN ["chmod","-R","u+x","/opt/buildbox/scripts"]
+
+RUN cp -fv /opt/buildbox/scripts/docker-entrypoint.sh /docker-entrypoint.sh
+
+RUN apt-get update && apt-get install -y vim ; exit 0
+

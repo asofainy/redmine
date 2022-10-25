@@ -1,0 +1,19 @@
+development:
+  adapter: sqlite3
+  database: db/redmine.sqlite3
+
+test:
+  adapter: "mysql2"
+  host: "apollo-services.test.svc.cluster.local"
+  port: "3306"
+  username: "redmine"
+  password: "my_password"
+  database: "redmine"
+
+production:
+  adapter: "mysql2"
+  host: "apollo-services.production.svc.cluster.local"
+  port: "3306"
+  username: "redmine"
+  password: "my_password"
+  database: "redmine"

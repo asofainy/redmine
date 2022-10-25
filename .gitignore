@@ -1,0 +1,9 @@
+## Files
+# Patterns
+*.log
+*.flag
+*.lck
+*.sftp
+
+## Directories
+backups/

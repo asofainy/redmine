@@ -1,0 +1,17 @@
+## Files
+.gitignore
+changelog.txt
+
+## Folders
+.git
+.cache
+
+## Patterns
+*.md
+*.log
+
+
+
+
+
+
