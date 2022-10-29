@@ -1,20 +1,42 @@
 #!/bin/bash
 
+
 root="/usr/src/redmine"
+token="ghp_E3CK8yyaeO9l6LdqxspwE4vgrX9h5K1GWUD"
 
 #. /opt/buildbox/scripts/setenv.sh
 
-### Integration avec Calibre ###
+#   Plugins
 
-if [ -f "$root/plugins/redmine_xapian/app/views/search/index.html.erb" ] && [ -f "$root/plugins/calibre/app/views/search/index.html.erb" ]
+##  Calibre
+
+### Calibre avec More Previews
+
+#git clone --branch dev https://${token}@github.com/asofainy/redmine_calibre /usr/src/redmine/plugins/redmine_calibre
+
+if [ -d "$root/plugins/redmine_more_previews" ] && [ -d "$root/plugins/redmine_calibre" ]
 then
-    file="$root/plugins/redmine_xapian/app/views/search/index.html.erb"
-    echo "Redmine Xapian and Calibre plugins found, renaming \"$file\""
-    sudo mv $file "$file.old"
+
+    echo "INFO -- : Redmine More Previews and Calibre plugins found"
+    cp -v $root/plugins/redmine_calibre/app/views/repositories/more_preview.html.erb $root/plugins/redmine_more_previews/app/views/repositories/more_preview.html.erb
+
+#    file="$root/plugins/redmine_more_previews/app/views/repositories/more_preview.html.erb"
+#    sudo mv $file "$file.old"
+
+#    file="$root/plugins/redmine_more_previews/app/views/attachments/more_preview.html.erb"
+#    sudo mv $file "$file.old"
+
 fi
 
+### Calibre avec Xapian Search
 
-### Plugins
+#if [ -f "$root/plugins/redmine_xapian/app/views/search/index.html.erb" ] && [ -f "$root/plugins/calibre/app/views/search/index.html.erb" ]
+#then
+#    echo "Redmine Xapian and Calibre plugins found"
+
+#    file="$root/plugins/redmine_xapian/app/views/search/index.html.erb"
+#    sudo mv $file "$file.old"
+#fi
 
 
 #$root/toolbox/scripts/config_database.sh
