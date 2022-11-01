@@ -56,9 +56,9 @@ COPY scripts/ /tmp/scripts/
 
 RUN ["chmod","-R","u+x","/tmp/scripts"]
 
-RUN cp -fv /tmp/docker-entrypoint.sh /docker-entrypoint.sh \
-    && cp -fv /tmp/configure.sh /configure.sh \
-    && rm -rfv 
+RUN cp -fv /tmp/scripts/docker-entrypoint.sh /docker-entrypoint.sh \
+    && cp -fv /tmp/scripts/configure.sh /configure.sh \
+    && rm -rfv  /tmp/scripts
 
 #RUN ["chmod","-R","u+x","/docker-entrypoint.sh /configure.sh"]
 #RUN cp -fv /opt/buildbox/scripts/docker-entrypoint.sh /docker-entrypoint.sh
