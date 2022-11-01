@@ -9,11 +9,8 @@ RUN apt-get update && apt-get install -y vim apt-utils \
     ruby-xapian xapian-omega \
     poppler-utils antiword catdoc libwpd-tools libwps-tools unrtf catdvi \
     djview djview3 uuid uuid-dev libemail-outlook-message-perl \
-    pandoc libreoffice  \
-    python3-pip jq ; \
+    pandoc libreoffice ;
     exit 0
-
-RUN pip3 install yq
 
 RUN cd /tmp \
     && wget https://ftp.exim.org/pub/pcre/pcre2-10.37.tar.gz \
