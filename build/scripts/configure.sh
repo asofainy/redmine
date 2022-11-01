@@ -3,11 +3,6 @@
 HTTPS_PORT=3443
 root="/usr/src/redmine"
 
-### Permissions
-
-
-sudo chown -R redmine:redmine /usr/src/redmine /usr/local/bundle/gems
-
 ### SSL
 
 cd $root
