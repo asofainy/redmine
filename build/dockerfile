@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y vim apt-utils \
     ruby-xapian xapian-omega \
     poppler-utils antiword catdoc libwpd-tools libwps-tools unrtf catdvi \
     djview djview3 uuid uuid-dev libemail-outlook-message-perl \
-    pandoc libreoffice ;
+    pandoc libreoffice ; \
     exit 0
 
 RUN cd /tmp \
@@ -51,9 +51,6 @@ RUN git clone --branch v1.0.0 https://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@g
 
 RUN echo "redmine ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
     && chown -R redmine:redmine /usr/src/redmine /usr/local/bundle/gems
-
-#    && mkdir -p /usr/src/redmine/app/assets/config && echo '{}' > /usr/src/redmine/app/assets/config/manifest.js \
-#    && sed -i "s/URI.unescape/CGI.unescape/g" /usr/src/redmine/plugins/redmine_xapian/lib/redmine_xapian/xapian_search.rb
 
 COPY scripts/ /tmp/scripts/
 
