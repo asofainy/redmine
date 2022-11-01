@@ -158,7 +158,9 @@ YML
         fi
 
         # Additional configuration
-        . /opt/buildbox/scripts/configure.sh
+        . /configure.sh
 fi
+
+#exec tail -f /dev/null
 
 exec "$@"

@@ -1,8 +1,6 @@
 FROM redmine:4.1.3-passenger
 
-#RUN mkdir -p /usr/share/man/man1
 RUN apt-get update && apt-get install -y vim apt-utils \
-    openssl \
     unzip gzip sudo curl \
     libmariadb-dev libsqlite3-dev \
     file make gcc g++ xz-utils \
@@ -10,11 +8,8 @@ RUN apt-get update && apt-get install -y vim apt-utils \
     ruby-xapian xapian-omega \
     poppler-utils antiword catdoc libwpd-tools libwps-tools unrtf catdvi \
     djview djview3 uuid uuid-dev libemail-outlook-message-perl \
-    pandoc libreoffice  \
-    python3-pip jq ; \
+    pandoc libreoffice ; \
     exit 0
-
-RUN pip3 install yq
 
 RUN cd /tmp \
     && wget https://ftp.exim.org/pub/pcre/pcre2-10.37.tar.gz \
@@ -44,23 +39,11 @@ RUN rm -rf /tmp/* \
 RUN git clone --branch v3.0.1 https://github.com/xelkano/redmine_xapian.git /usr/src/redmine/plugins/redmine_xapian \
     && git clone https://github.com/HugoHasenbein/redmine_more_previews.git /usr/src/redmine/plugins/redmine_more_previews \
     && git clone --branch v0.6.2 https://github.com/paginagmbh/redmine_emojibutton /usr/src/redmine/plugins/redmine_emojibutton \
-    && git clone --branch 0.27.0 https://github.com/taqueci/redmine_wysiwyg_editor.git /usr/src/redmine/plugins/redmine_wysiwyg_editor
-
-RUN git clone --branch dev https://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@github.com/asofainy/redmine_calibre /usr/src/redmine/plugins/redmine_calibre
-
-##  Additional
-#RUN git clone -b 3.0.5 https://www.github.com/alphanodes/additionals.git plugins/additionals
-##  Additional Tags
-#RUN git clone -b 1.0.4 https://www.github.com/alphanodes/additional_tags.git plugins/additional_tags
-
+    && git clone --branch 0.27.0 https://github.com/taqueci/redmine_wysiwyg_editor.git /usr/src/redmine/plugins/redmine_wysiwyg_editor \
+    && git clone https://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@github.com/asofainy/redmine_calibre /usr/src/redmine/plugins/redmine_calibre
 
 RUN echo "redmine ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
-    && mkdir -p /usr/src/redmine/app/assets/config && echo '{}' > /usr/src/redmine/app/assets/config/manifest.js \
-    && sed -i "s/URI.unescape/CGI.unescape/g" /usr/src/redmine/plugins/redmine_xapian/lib/redmine_xapian/xapian_search.rb
+    && chown -R redmine:redmine /usr/src/redmine /usr/local/bundle/gems
 
-COPY scripts/ /opt/buildbox/scripts/
-
-RUN ["chown","-R","redmine:redmine","/usr/src/redmine","/usr/local/bundle/gems"]
-RUN ["chmod","-R","u+x","/opt/buildbox/scripts"]
-
-RUN cp -fv /opt/buildbox/scripts/docker-entrypoint.sh /docker-entrypoint.sh
+COPY scripts/docker-entrypoint.sh /docker-entrypoint.sh
+COPY scripts/configure.sh /configure.sh
