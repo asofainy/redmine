@@ -48,4 +48,4 @@ RUN echo "redmine ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
 COPY scripts/docker-entrypoint.sh /docker-entrypoint.sh
 COPY scripts/configure.sh /configure.sh
 
-RUN ["chmod","-R","u+x","/docker-entrypoint.sh /configure.sh"]
+RUN ["chmod","-R","u+x","/docker-entrypoint.sh","/configure.sh"]
