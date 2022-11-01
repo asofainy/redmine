@@ -39,6 +39,6 @@ jobs:
           context: ./build
           file: ./build/dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME}}/${{ github.event.repository.name }}:${{ steps.extract_branch.outputs.branch }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME}}/${{ github.event.repository.name }}:${{ steps.extract_branch.outputs.branch }} , ${{ secrets.DOCKERHUB_USERNAME}}/${{ github.event.repository.name }}:latest
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME}}/${{ github.event.repository.name }}:${{ steps.extract_branch.outputs.branch }}
           cache-to: type=inline
