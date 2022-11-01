@@ -1,7 +1,8 @@
-FROM redmine:4.1.3
+FROM redmine:4.1.3-passenger
 
 #RUN mkdir -p /usr/share/man/man1
 RUN apt-get update && apt-get install -y vim apt-utils \
+    openssl \
     unzip gzip sudo curl \
     libmariadb-dev libsqlite3-dev \
     file make gcc g++ xz-utils \
