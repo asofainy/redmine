@@ -127,6 +127,9 @@ if [ -n "$isLikelyRedmine" ]; then
                 done
         fi
 
+        # Additional configuration
+        . /configure.sh
+        
         # install additional gems for Gemfile.local and plugins
         bundle check || bundle install
 
@@ -157,8 +160,8 @@ YML
                 set -- tini -- "$@"
         fi
 
-        # Additional configuration
-        . /opt/buildbox/scripts/configure.sh
 fi
+
+#exec tail -f /dev/null
 
 exec "$@"
