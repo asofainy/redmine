@@ -5,13 +5,13 @@ root="/usr/src/redmine"
 
 ### SSL
 
-cd $root
-mkdir -p ssl
-cd ssl
-openssl dhparam -out dhparam.pem 2048
-openssl req -x509 -nodes -newkey rsa:4096 -keyout ssl_key.pem -out ssl_cert.pem -days 365 \
-            -subj "/CN=${HOSTNAME}/O=Olympus/OU=Apollo/C=GR/L=GR"
-cd -
+#cd $root
+#mkdir -p ssl
+#cd ssl
+#openssl dhparam -out dhparam.pem 2048
+#openssl req -x509 -nodes -newkey rsa:4096 -keyout ssl_key.pem -out ssl_cert.pem -days 365 \
+#            -subj "/CN=${HOSTNAME}/O=Olympus/OU=Apollo/C=GR/L=GR"
+#cd -
 
 
 cat > /usr/src/redmine/Passengerfile.json <<EOF
