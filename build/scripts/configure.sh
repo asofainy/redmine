@@ -5,28 +5,17 @@ root="/usr/src/redmine"
 
 ### SSL
 
-#cd $root
-#mkdir -p ssl
-#cd ssl
-#openssl dhparam -out dhparam.pem 2048
-#openssl req -x509 -nodes -newkey rsa:4096 -keyout ssl_key.pem -out ssl_cert.pem -days 365 \
-#            -subj "/CN=${HOSTNAME}/O=Olympus/OU=Apollo/C=GR/L=GR"
-#cd -
-
-
 cat > /usr/src/redmine/Passengerfile.json <<EOF
 {
     "nginx_config_template": "/usr/src/redmine/config/nginx.conf.erb",
     "user": "redmine",
     "port": ${HTTPS_PORT},
     "ssl": true,
-    "ssl_certificate": "/usr/src/redmine/ssl/ssl_cert.pem",
-    "ssl_certificate_key": "/usr/src/redmine/ssl/ssl_key.pem",
+    "ssl_certificate": "/usr/src/redmine/ssl/redmine.crt",
+    "ssl_certificate_key": "/usr/src/redmine/ssl/redmine.key",
     "environment": "${RAILS_ENV}"
 }
 EOF
-
-#cp $(passenger-config about resourcesdir)/templates/standalone/config.erb /usr/src/redmine/config/nginx.conf.erb
 
 cat > /usr/src/redmine/config/nginx.conf.erb <<EOF
 ##########################################################################
