@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HTTPS_PORT=3443
+#HTTPS_PORT=$HTTPS_PORT
 root="/usr/src/redmine"
 
 ### SSL
